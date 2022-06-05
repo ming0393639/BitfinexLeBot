@@ -17,19 +17,32 @@ namespace BitfinexLeBot.Core.Services
     public class CentralizedBotService : IBotService
     {
 
-        List<UserStrategy> registeredUserStrategyList = new List<UserStrategy>();
+        private List<UserStrategy> registeredUserStrategyList = new List<UserStrategy>();
 
         /// <summary>
         /// key: UserId; value: BitfinexClient
         /// </summary>
-        Dictionary<int, BitfinexClient> userClientDictionary = new Dictionary<int, BitfinexClient>();
+        private Dictionary<int, BitfinexClient> userClientDictionary = new Dictionary<int, BitfinexClient>();
 
-        BackgroundWorker worker = new BackgroundWorker();
+        private BackgroundWorker worker = new BackgroundWorker();
 
+        private IQuoteService quoteService;
 
+        private IStrategyService strategyService;
 
-        public void InitializeBot()
+        public CentralizedBotService(IQuoteService quoteService, IStrategyService strategyService)
         {
+            this.quoteService = quoteService;
+            this.strategyService = strategyService;
+        }
+
+
+
+
+        public void InitializeBot(IQuoteService quoteService)
+        {
+            this.quoteService = quoteService;
+
             worker.DoWork += new DoWorkEventHandler(botDoWork);
             worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(botRunWorkerCompleted);
             worker.ProgressChanged += new ProgressChangedEventHandler(botProgressChanged);
@@ -41,7 +54,21 @@ namespace BitfinexLeBot.Core.Services
 
         private void botDoWork(object sender, DoWorkEventArgs e)
         {
+            while (!worker.CancellationPending)
+            {
+                foreach (var userStrategy in registeredUserStrategyList)
+                {
+                    if(!userStrategy.Active)
+                    {
+                        continue;
+                    }
+                    var strategy = strategyService.GetStrategy(userStrategy.StrategyName);
+                    if (strategy != null)
+                        strategy.Execute(quoteService, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
 
+                }
+
+            }
 
         }
 
@@ -82,6 +109,7 @@ namespace BitfinexLeBot.Core.Services
             if (userStrategy != null)
             {
                 registeredUserStrategyList.Remove(userStrategy);
+                userClientDictionary.Remove(userStrategy.UserStrategyId);
             }
         }
 
