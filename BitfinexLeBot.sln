@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{8BF033CC-8833-42B7-B11C-CFA8F69148C3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitfinex.Net", "Bitfinex.Net\Bitfinex.Net\Bitfinex.Net.csproj", "{98BE7117-F478-46AE-A819-DEDD92897835}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitfinex.Net.UnitTests", "Bitfinex.Net\Bitfinex.Net.UnitTests\Bitfinex.Net.UnitTests.csproj", "{46944459-30D0-45AC-A043-F75DF3424C95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitfinexLeBot.Core", "BitfinexLeBot.Core\BitfinexLeBot.Core.csproj", "{9636C507-D18A-4240-847D-0E9ADF88E4AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitfinexLeBot.WebApi", "BitfinexLeBot.WebApi\BitfinexLeBot.WebApi.csproj", "{AFDC1ED5-D575-474B-B75F-C1B4F9ACDD61}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98BE7117-F478-46AE-A819-DEDD92897835}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98BE7117-F478-46AE-A819-DEDD92897835}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98BE7117-F478-46AE-A819-DEDD92897835}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98BE7117-F478-46AE-A819-DEDD92897835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46944459-30D0-45AC-A043-F75DF3424C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46944459-30D0-45AC-A043-F75DF3424C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46944459-30D0-45AC-A043-F75DF3424C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46944459-30D0-45AC-A043-F75DF3424C95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9636C507-D18A-4240-847D-0E9ADF88E4AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9636C507-D18A-4240-847D-0E9ADF88E4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9636C507-D18A-4240-847D-0E9ADF88E4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9636C507-D18A-4240-847D-0E9ADF88E4AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFDC1ED5-D575-474B-B75F-C1B4F9ACDD61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFDC1ED5-D575-474B-B75F-C1B4F9ACDD61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFDC1ED5-D575-474B-B75F-C1B4F9ACDD61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFDC1ED5-D575-474B-B75F-C1B4F9ACDD61}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{98BE7117-F478-46AE-A819-DEDD92897835} = {8BF033CC-8833-42B7-B11C-CFA8F69148C3}
+		{46944459-30D0-45AC-A043-F75DF3424C95} = {8BF033CC-8833-42B7-B11C-CFA8F69148C3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2CA62535-64C7-4C45-B369-CF8843BD8BE0}
+	EndGlobalSection
+EndGlobal
