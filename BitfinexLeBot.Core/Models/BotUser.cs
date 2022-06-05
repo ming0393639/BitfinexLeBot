@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Bitfinex.Net.Clients;
+using Bitfinex.Net.Objects;
+using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,9 +19,6 @@ namespace BitfinexLeBot.Core.Models
         public string ApiKey { get; set; }
 
         public string Secret { get; set; }
-
-
-
 
 
     }

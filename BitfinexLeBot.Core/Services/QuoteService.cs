@@ -16,7 +16,9 @@ namespace BitfinexLeBot.Core.Services
         BitfinexClient client = new BitfinexClient();
         BitfinexSocketClient socketClient = new BitfinexSocketClient();
 
-        public void InitializeQuote()
+
+
+        public void InitializeQuote(List<string> symbolList)
         {
             throw new NotImplementedException();
         }

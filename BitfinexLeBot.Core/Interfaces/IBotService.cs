@@ -10,11 +10,16 @@ namespace BitfinexLeBot.Core.Interfaces
 {
     public interface IBotService
     {
-        BackgroundWorker RunUserStrategy(string botLabel, string apiKey, string apiSecret, string fundingSymbol, string strategyName, string strategyConfigJson);
+        void InitializeBot();
 
-        void StopUserStrategy(string botLabel);
+        bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson);
 
-        Dictionary<string, BackgroundWorker> GetUserStrategyBotDictionary();
+        void UnregisterUserStrategy(int userStrategyId);
+
+        List<UserStrategy> GetRegisteredUserStrategy();
+
+
+
 
     }
 }

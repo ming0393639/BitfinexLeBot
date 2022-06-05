@@ -12,7 +12,7 @@ namespace BitfinexLeBot.Core.Interfaces
 {
     public interface IQuoteService
     {
-        void InitializeQuote();
+        void InitializeQuote(List<string> symbolList);
 
         BitfinexClient GetBitfinexClient();
 
