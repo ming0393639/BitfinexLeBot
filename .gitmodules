@@ -1,0 +1,3 @@
+[submodule "Bitfinex.Net"]
+	path = Bitfinex.Net
+	url = https://github.com/ming0393639/Bitfinex.Net.git
