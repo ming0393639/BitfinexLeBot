@@ -2,6 +2,7 @@
 using Bitfinex.Net.Objects;
 using BitfinexLeBot.Core.Interfaces;
 using BitfinexLeBot.Core.Models;
+using BitfinexLeBot.Core.Models.FundingInfo;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
 using System;
@@ -23,11 +24,39 @@ namespace BitfinexLeBot.Core.Services
         /// </summary>
         Dictionary<int, BitfinexClient> userClientDictionary = new Dictionary<int, BitfinexClient>();
 
+        BackgroundWorker worker = new BackgroundWorker();
+
+
 
         public void InitializeBot()
         {
-            throw new NotImplementedException();
+            worker.DoWork += new DoWorkEventHandler(botDoWork);
+            worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(botRunWorkerCompleted);
+            worker.ProgressChanged += new ProgressChangedEventHandler(botProgressChanged);
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+
+            worker.RunWorkerAsync();
         }
+
+        private void botDoWork(object sender, DoWorkEventArgs e)
+        {
+
+
+        }
+
+        private void botProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+
+        }
+
+        private void botRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+        }
+
+
+
 
         public bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson)
         {
@@ -61,6 +90,19 @@ namespace BitfinexLeBot.Core.Services
             return registeredUserStrategyList;
         }
 
+        public FundingState GetFundingState(BotUser user)
+        {
+            throw new NotImplementedException();
+        }
 
+        public FundingBalance GetFundingBalance(BotUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public FundingPerformance GetFundingPerformance(BotUser user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

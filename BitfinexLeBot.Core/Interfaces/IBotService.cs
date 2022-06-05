@@ -1,4 +1,5 @@
 ﻿using BitfinexLeBot.Core.Models;
+using BitfinexLeBot.Core.Models.FundingInfo;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,6 +20,11 @@ namespace BitfinexLeBot.Core.Interfaces
         List<UserStrategy> GetRegisteredUserStrategy();
 
 
+        FundingState GetFundingState(BotUser user);
+
+        FundingBalance GetFundingBalance(BotUser user);
+
+        FundingPerformance GetFundingPerformance(BotUser user);
 
 
     }
