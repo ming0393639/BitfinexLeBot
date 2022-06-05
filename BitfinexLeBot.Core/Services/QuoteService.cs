@@ -3,6 +3,7 @@ using Bitfinex.Net.Enums;
 using Bitfinex.Net.Objects.Models;
 using Bitfinex.Net.Objects.Models.V1;
 using BitfinexLeBot.Core.Interfaces;
+using CryptoExchange.Net.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,27 +12,27 @@ using System.Threading.Tasks;
 
 namespace BitfinexLeBot.Core.Services
 {
-    public class QuoteService : IQuoteService
+    public class QuoteService : IQuoteSource
     {
         BitfinexClient client = new BitfinexClient();
         BitfinexSocketClient socketClient = new BitfinexSocketClient();
 
 
 
-        public void InitializeQuote(List<string> symbolList)
-        {
-            throw new NotImplementedException();
-        }
+        //public void InitializeQuote(List<string> symbolList)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public BitfinexClient GetBitfinexClient()
-        {
-            return client;
-        }
+        //public BitfinexClient GetBitfinexClient()
+        //{
+        //    return client;
+        //}
 
-        public BitfinexSocketClient GetBitfinexSocketClient()
-        {
-            return socketClient;
-        }
+        //public BitfinexSocketClient GetBitfinexSocketClient()
+        //{
+        //    return socketClient;
+        //}
 
         public BitfinexFundingBook GetFundingBook(string currency, int limit = 10)
         {
@@ -63,5 +64,9 @@ namespace BitfinexLeBot.Core.Services
             throw new NotImplementedException();
         }
 
+        public void SubscribeBookUpdated(Action<DataEvent<IEnumerable<BitfinexOrderBookEntry>>> handler)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace BitfinexLeBot.Core.Interfaces
     public interface IStrategy
     {
 
-        string Execute(IQuotable quotable, IFundingInfo fundingInfo, BotUser botUser, string fundingSymbol, string strategyConfigJson);
+        string Execute(IQuoteSource quoteSource, IFundingInfo fundingInfo, BotUser botUser, string fundingSymbol, string strategyConfigJson);
 
 
     }

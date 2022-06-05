@@ -26,23 +26,19 @@ namespace BitfinexLeBot.Core.Services
 
         private BackgroundWorker worker = new BackgroundWorker();
 
-        private IQuoteService quoteService;
+        private IQuoteSource quoteSource;
 
         private IStrategyService strategyService;
 
-        public CentralizedBotService(IQuoteService quoteService, IStrategyService strategyService)
+        public CentralizedBotService(IQuoteSource quoteSource, IStrategyService strategyService)
         {
-            this.quoteService = quoteService;
+            this.quoteSource = quoteSource;
             this.strategyService = strategyService;
         }
 
 
-
-
-        public void InitializeBot(IQuoteService quoteService)
+        public void InitializeBot()
         {
-            this.quoteService = quoteService;
-
             worker.DoWork += new DoWorkEventHandler(botDoWork);
             worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(botRunWorkerCompleted);
             worker.ProgressChanged += new ProgressChangedEventHandler(botProgressChanged);
@@ -64,10 +60,11 @@ namespace BitfinexLeBot.Core.Services
                     }
                     var strategy = strategyService.GetStrategy(userStrategy.StrategyName);
                     if (strategy != null)
-                        strategy.Execute(quoteService, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+                        strategy.Execute(quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
 
                 }
 
+                Thread.Sleep(100);
             }
 
         }

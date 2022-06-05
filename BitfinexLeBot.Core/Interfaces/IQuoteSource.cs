@@ -2,19 +2,17 @@
 using Bitfinex.Net.Enums;
 using Bitfinex.Net.Objects.Models;
 using Bitfinex.Net.Objects.Models.V1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CryptoExchange.Net.Sockets;
 
 namespace BitfinexLeBot.Core.Interfaces
 {
-    public interface IQuotable
+    public interface IQuoteSource
     {
-        BitfinexClient GetBitfinexClient();
+        //void InitializeQuote(List<string> symbolList);
 
-        BitfinexSocketClient GetBitfinexSocketClient();
+        //BitfinexClient GetBitfinexClient();
+
+        //BitfinexSocketClient GetBitfinexSocketClient();
 
         BitfinexKline GetLastKLine(string symbol, KlineInterval timeFrame = KlineInterval.FifteenMinutes);
 
@@ -27,6 +25,10 @@ namespace BitfinexLeBot.Core.Interfaces
         List<BitfinexTradeSimple> GetTrades(string symbol, int limit = 100);
 
         List<BitfinexSymbolOverview> GetSymbolsOverview(params string[] symbols);
+
+        void SubscribeBookUpdated(Action<DataEvent<IEnumerable<BitfinexOrderBookEntry>>> handler);
+
+
 
 
     }

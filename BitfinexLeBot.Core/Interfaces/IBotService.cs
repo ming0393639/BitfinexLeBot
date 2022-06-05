@@ -4,7 +4,7 @@ namespace BitfinexLeBot.Core.Interfaces
 {
     public interface IBotService : IFundingInfo
     {
-        void InitializeBot(IQuoteService quoteService);
+        void InitializeBot();
 
         bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson);
 
