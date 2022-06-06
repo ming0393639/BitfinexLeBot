@@ -64,7 +64,7 @@ namespace BitfinexLeBot.Core.Services
                     }
                     var strategy = strategyService.GetStrategy(userStrategy.StrategyName);
                     if (strategy != null)
-                        strategy.ExecuteAsync(quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+                        strategy.Execute(quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
 
                 }
 
@@ -184,7 +184,7 @@ namespace BitfinexLeBot.Core.Services
         {
             var fundingState = GetFundingState(user, fundinSymbol);
             List<BitfinexOffer> result = new List<BitfinexOffer>();
-            foreach (var offer in fundingState.Result.FundingOffers)
+            foreach (var offer in fundingState.FundingOffers)
                 result.Add(CancelFundingOffer(user, offer.Id));
             return result;
         }
