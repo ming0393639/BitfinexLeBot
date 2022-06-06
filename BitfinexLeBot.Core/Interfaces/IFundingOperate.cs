@@ -7,18 +7,18 @@ namespace BitfinexLeBot.Core.Interfaces
     public interface IFundingOperate
     {
 
-        Task<FundingState> GetFundingStateAsync(BotUser user, string fundinSymbol);
+        FundingState GetFundingState(BotUser user, string fundinSymbol);
 
-        Task<FundingBalance> GetFundingBalanceAsync(BotUser user, string fundinSymbol);
+        FundingBalance GetFundingBalance(BotUser user, string fundinSymbol);
 
-        Task<FundingPerformance> GetFundingPerformanceAsync(BotUser user, string fundinSymbol);
+        FundingPerformance GetFundingPerformance(BotUser user, string fundinSymbol);
 
 
-        Task<BitfinexOffer> CancelFundingOffer(BotUser user, long id);
+        BitfinexOffer CancelFundingOffer(BotUser user, long id);
 
-        Task<List<BitfinexOffer>> CancelAllFundingOffers(BotUser user, string fundinSymbol);
+        List<BitfinexOffer> CancelAllFundingOffers(BotUser user, string fundinSymbol);
 
-        Task<BitfinexOffer> NewOffer(BotUser user, string fundinSymbol, decimal amount, decimal rate, int period = 2);
+        BitfinexOffer NewOffer(BotUser user, string fundinSymbol, decimal amount, decimal rate, int period = 2);
 
     }
 }

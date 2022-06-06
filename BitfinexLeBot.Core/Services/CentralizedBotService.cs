@@ -117,54 +117,54 @@ namespace BitfinexLeBot.Core.Services
             return registeredUserStrategyList;
         }
 
-        public async Task<FundingState> GetFundingStateAsync(BotUser user, string fundinSymbol)
+        public FundingState GetFundingState(BotUser user, string fundinSymbol)
         {
             FundingState fundingState = new FundingState();
 
             BitfinexClient client = userClientDictionary[user.BotUserId];
 
-            var fundingProvidedResult = await client.GeneralApi.Funding.GetFundingInfoAsync($"f{fundinSymbol}");
-            BitfinexFundingInfo fundingInfo = fundingProvidedResult.Data;
+            var fundingProvidedResult = client.GeneralApi.Funding.GetFundingInfoAsync($"f{fundinSymbol}");
+            BitfinexFundingInfo fundingInfo = fundingProvidedResult.Result.Data;
             fundingState.WeightedAvgProvidedRate = fundingInfo.Data.YieldLend * 365;
             fundingState.WeightedAvgProvidedDuration = fundingInfo.Data.DurationLend;
 
-            var fundingCreditsResult = await client.GeneralApi.Funding.GetFundingCreditsAsync($"f{fundinSymbol}");
-            var fundingCreditList = fundingCreditsResult.Data.ToList();
+            var fundingCreditsResult = client.GeneralApi.Funding.GetFundingCreditsAsync($"f{fundinSymbol}");
+            var fundingCreditList = fundingCreditsResult.Result.Data.ToList();
             foreach (var credit in fundingCreditList)
                 fundingState.FundingCredits.Add(credit);
 
-            var activeFundingOffersResult = await client.GeneralApi.Funding.GetActiveFundingOffersAsync($"f{fundinSymbol}");
-            var fundingOfferList = activeFundingOffersResult.Data.ToList();
+            var activeFundingOffersResult = client.GeneralApi.Funding.GetActiveFundingOffersAsync($"f{fundinSymbol}");
+            var fundingOfferList = activeFundingOffersResult.Result.Data.ToList();
             foreach (var offer in fundingOfferList)
                 fundingState.FundingOffers.Add(offer);
 
             return fundingState;
         }
 
-        public async Task<FundingBalance> GetFundingBalanceAsync(BotUser user, string fundinSymbol)
+        public FundingBalance GetFundingBalance(BotUser user, string fundinSymbol)
         {
             FundingBalance balance = new FundingBalance();
             BitfinexClient client = userClientDictionary[user.BotUserId];
 
-            var availableFundingBalanceResult = await client.SpotApi.Account.GetAvailableBalanceAsync($"f{fundinSymbol}", OrderSide.Buy, 0, WalletType.Funding);
-            balance.AvailableBalance = -availableFundingBalanceResult.Data.AvailableBalance;
+            var availableFundingBalanceResult = client.SpotApi.Account.GetAvailableBalanceAsync($"f{fundinSymbol}", OrderSide.Buy, 0, WalletType.Funding);
+            balance.AvailableBalance = -availableFundingBalanceResult.Result.Data.AvailableBalance;
             //balance.AvailableBalance = Math.Floor(-availableFundingBalanceResult.Data.AvailableBalance * 1000000) / 1000000;
 
-            var fundingBalanceResult = await client.SpotApi.Account.GetBalancesAsync();
-            var wallet = fundingBalanceResult.Data
+            var fundingBalanceResult = client.SpotApi.Account.GetBalancesAsync();
+            var wallet = fundingBalanceResult.Result.Data
                 .Where(b => b.Type.Equals(WalletType.Funding) && b.Asset.Equals(fundinSymbol)).First();
             if (wallet != null)
                 balance.TotalBalance = wallet.Total;
             return balance;
         }
 
-        public async Task<FundingPerformance> GetFundingPerformanceAsync(BotUser user, string fundinSymbol)
+        public FundingPerformance GetFundingPerformance(BotUser user, string fundinSymbol)
         {
             FundingPerformance performance = new FundingPerformance();
             BitfinexClient client = userClientDictionary[user.BotUserId];
 
-            var ledgerEntriesResult = await client.SpotApi.Account.GetLedgerEntriesAsync(fundinSymbol, DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
-            var ledgerEntries = ledgerEntriesResult.Data;
+            var ledgerEntriesResult = client.SpotApi.Account.GetLedgerEntriesAsync(fundinSymbol, DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
+            var ledgerEntries = ledgerEntriesResult.Result.Data;
             foreach (var entry in ledgerEntries)
             {
                 if (entry.Description.Equals("Margin Funding Payment on wallet funding"))
@@ -173,27 +173,27 @@ namespace BitfinexLeBot.Core.Services
             return performance;
         }
 
-        public async Task<BitfinexOffer> CancelFundingOffer(BotUser user, long id)
+        public BitfinexOffer CancelFundingOffer(BotUser user, long id)
         {
             BitfinexClient client = userClientDictionary[user.BotUserId];
-            var cancelOfferResult = await client.GeneralApi.Funding.CancelOfferAsync(id);
-            return cancelOfferResult.Data;
+            var cancelOfferResult = client.GeneralApi.Funding.CancelOfferAsync(id);
+            return cancelOfferResult.Result.Data;
         }
 
-        public async Task<List<BitfinexOffer>> CancelAllFundingOffers(BotUser user, string fundinSymbol)
+        public List<BitfinexOffer> CancelAllFundingOffers(BotUser user, string fundinSymbol)
         {
-            var fundingState = await GetFundingStateAsync(user, fundinSymbol);
+            var fundingState = GetFundingState(user, fundinSymbol);
             List<BitfinexOffer> result = new List<BitfinexOffer>();
-            foreach (var offer in fundingState.FundingOffers)
-                result.Add(await CancelFundingOffer(user, offer.Id));
+            foreach (var offer in fundingState.Result.FundingOffers)
+                result.Add(CancelFundingOffer(user, offer.Id));
             return result;
         }
 
-        public async Task<BitfinexOffer> NewOffer(BotUser user, string fundinSymbol, decimal amount, decimal rate, int period = 2)
+        public  BitfinexOffer NewOffer(BotUser user, string fundinSymbol, decimal amount, decimal rate, int period = 2)
         {
             BitfinexClient client = userClientDictionary[user.BotUserId];
-            var result = await client.GeneralApi.Funding.NewOfferAsync(fundinSymbol, amount, rate, period, FundingType.Lend);
-            return result.Data;
+            var result = client.GeneralApi.Funding.NewOfferAsync(fundinSymbol, amount, rate, period, FundingType.Lend);
+            return result.Result.Data;
         }
     }
 }

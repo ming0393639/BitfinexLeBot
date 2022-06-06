@@ -9,7 +9,7 @@ namespace BitfinexLeBot.Core.Services.Strategy
 {
     public class RecentHighStrategy : IStrategy
     {
-        public async Task<StrategyResult> ExecuteAsync(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson)
+        public StrategyResult Execute(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson)
         {
             StrategyResult result = new StrategyResult()
             {
@@ -24,26 +24,26 @@ namespace BitfinexLeBot.Core.Services.Strategy
 
             if (config.UpdateOfferingEveryRun)
             {
-                var fundingState = await fundingOperate.GetFundingStateAsync(botUser, fundingSymbol);
+                var fundingState = fundingOperate.GetFundingState(botUser, fundingSymbol);
                 if (fundingState.FundingOffers.Count > 0)
                 {
                     offeringBalance = fundingState.TotalOfferingAmount;
-                    var cancelSignals = await fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
+                    var cancelSignals = fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
                     result.Sinals.AddRange(cancelSignals);
                 }
             }
 
             // Send orders
-            var fundingBalance = await fundingOperate.GetFundingBalanceAsync(botUser, fundingSymbol);
+            var fundingBalance = fundingOperate.GetFundingBalance(botUser, fundingSymbol);
             if (fundingBalance != null)
             {
-                var trades = quoteSource.GetTrades($"f{fundingSymbol}");
+                var trades = quoteSource.GetTrades($"f{fundingSymbol}", config.RecentHighTradeCount);
                 var kLines = quoteSource.GetKLines($"f{fundingSymbol}", config.RecentHighKCount);
 
                 decimal totalAvailableBalance = fundingBalance.AvailableBalance + offeringBalance;
                 if (totalAvailableBalance > 50)
                 {
-                    var signal = await newOfferAtFirstAskAsync(fundingOperate, botUser, fundingSymbol, totalAvailableBalance, config, fundingBalance.TotalBalance, trades, kLines);
+                    var signal = newOfferAtFirstAsk(fundingOperate, botUser, fundingSymbol, totalAvailableBalance, config, fundingBalance.TotalBalance, trades, kLines);
                     if (signal!=null)
                         result.Sinals.Add(signal);
                 }
@@ -51,7 +51,7 @@ namespace BitfinexLeBot.Core.Services.Strategy
             return result;
         }
 
-        private async Task<BitfinexOffer> newOfferAtFirstAskAsync(IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, decimal amount,
+        private BitfinexOffer newOfferAtFirstAsk(IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, decimal amount,
             RecentHighStrategyConfig config, decimal totalBalance, List<BitfinexTradeSimple> trades, List<BitfinexKline> kLines)
         {
             BitfinexOffer sinal = new BitfinexOffer();
@@ -98,11 +98,11 @@ namespace BitfinexLeBot.Core.Services.Strategy
             if (offerAmount > 50)
             {
                 if (rate > config.MinRate)
-                    sinal = await fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, rate, period);
+                    sinal = fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, rate, period);
                 else
                 {
                     if (!config.DoNotOfferWhenUnderMinRate)
-                        sinal = await fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, config.MinRate, period);
+                        sinal = fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, config.MinRate, period);
                 }
             }
 

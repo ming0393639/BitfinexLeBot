@@ -13,7 +13,7 @@ namespace BitfinexLeBot.Core.Services.Strategy
 {
     public class BasicStrategy : IStrategy
     {
-        public async Task<StrategyResult> ExecuteAsync(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson)
+        public StrategyResult Execute(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson)
         {
             StrategyResult result = new StrategyResult()
             {
@@ -28,29 +28,29 @@ namespace BitfinexLeBot.Core.Services.Strategy
 
             if (config.UpdateOfferingEveryRun)
             {
-                var fundingState = await fundingOperate.GetFundingStateAsync(botUser, fundingSymbol);
+                var fundingState = fundingOperate.GetFundingState(botUser, fundingSymbol);
                 if(fundingState.FundingOffers.Count > 0)
                 {
                     offeringBalance = fundingState.TotalOfferingAmount;
-                    var cancelSignals = await fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
+                    var cancelSignals = fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
                     result.Sinals.AddRange(cancelSignals);
                 }
             }
 
-            var fundingBalance = await fundingOperate.GetFundingBalanceAsync(botUser, fundingSymbol);
+            var fundingBalance = fundingOperate.GetFundingBalance(botUser, fundingSymbol);
             if (fundingBalance != null)
             {
                 var book = quoteSource.GetFundingBook($"f{fundingSymbol}");
 
                 decimal totalAvailableBalance = fundingBalance.AvailableBalance + offeringBalance;
                 if (totalAvailableBalance > 50)
-                    result.Sinals.Add(await newOfferAtFirstAskAsync(fundingOperate, botUser, fundingSymbol, totalAvailableBalance, config, book));
+                    result.Sinals.Add(newOfferAtFirstAskAsync(fundingOperate, botUser, fundingSymbol, totalAvailableBalance, config, book));
             }
             return result;
         }
 
 
-        private async Task<BitfinexOffer> newOfferAtFirstAskAsync(IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, decimal amount, BasicStrategyConfig config, BitfinexFundingBook book)
+        private BitfinexOffer newOfferAtFirstAskAsync(IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, decimal amount, BasicStrategyConfig config, BitfinexFundingBook book)
         {
             BitfinexOffer sinal = new BitfinexOffer();
 
@@ -62,13 +62,13 @@ namespace BitfinexLeBot.Core.Services.Strategy
 
             if (rate > config.MinRate)
             {
-                sinal = await fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, rate, period);
+                sinal = fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, rate, period);
             }
             else
             {
                 if (!config.DoNotOfferWhenUnderMinRate)
                 {
-                    sinal = await fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, config.MinRate, period);
+                    sinal = fundingOperate.NewOffer(botUser, fundingSymbol, offerAmount, config.MinRate, period);
                 }
             }
             return sinal;
