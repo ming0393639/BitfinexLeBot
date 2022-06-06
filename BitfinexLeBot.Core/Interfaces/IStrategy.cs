@@ -1,4 +1,5 @@
 ﻿using BitfinexLeBot.Core.Models;
+using BitfinexLeBot.Core.Models.Strategy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace BitfinexLeBot.Core.Interfaces
     public interface IStrategy
     {
 
-        string Execute(IQuoteSource quoteSource, IFundingInfo fundingInfo, BotUser botUser, string fundingSymbol, string strategyConfigJson);
+        StrategyResult Execute(IQuoteSource quoteSource, IFundingInfo fundingInfo, BotUser botUser, string fundingSymbol, string strategyConfigJson);
 
 
     }

@@ -11,11 +11,11 @@ namespace BitfinexLeBot.Core.Interfaces
     public interface IFundingInfo
     {
 
-        FundingState GetFundingState(BotUser user);
+        Task<FundingState> GetFundingStateAsync(UserStrategy userStrategy);
 
-        FundingBalance GetFundingBalance(BotUser user);
+        Task<FundingBalance> GetFundingBalanceAsync(UserStrategy userStrategy);
 
-        FundingPerformance GetFundingPerformance(BotUser user);
+       Task<FundingPerformance> GetFundingPerformanceAsync(UserStrategy userStrategy);
 
     }
 }

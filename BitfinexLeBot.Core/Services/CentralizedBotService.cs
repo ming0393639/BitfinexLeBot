@@ -1,5 +1,7 @@
 ﻿using Bitfinex.Net.Clients;
+using Bitfinex.Net.Enums;
 using Bitfinex.Net.Objects;
+using Bitfinex.Net.Objects.Models;
 using BitfinexLeBot.Core.Interfaces;
 using BitfinexLeBot.Core.Models;
 using BitfinexLeBot.Core.Models.FundingInfo;
@@ -80,8 +82,6 @@ namespace BitfinexLeBot.Core.Services
         }
 
 
-
-
         public bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson)
         {
             userStrategy.StrategyConfigJson = strategyConfigJson;
@@ -115,19 +115,60 @@ namespace BitfinexLeBot.Core.Services
             return registeredUserStrategyList;
         }
 
-        public FundingState GetFundingState(BotUser user)
+        public async Task<FundingState> GetFundingStateAsync(UserStrategy userStrategy)
         {
-            throw new NotImplementedException();
+            FundingState fundingState = new FundingState();
+
+            BitfinexClient client = userClientDictionary[userStrategy.User.BotUserId];
+
+            var fundingProvidedResult = await client.GeneralApi.Funding.GetFundingInfoAsync($"f{userStrategy.FundingSymbol}");
+            BitfinexFundingInfo fundingInfo = fundingProvidedResult.Data;
+            fundingState.WeightedAvgProvidedRate = fundingInfo.Data.YieldLend * 365;
+            fundingState.WeightedAvgProvidedDuration = fundingInfo.Data.DurationLend;
+
+            var fundingCreditsResult = await client.GeneralApi.Funding.GetFundingCreditsAsync($"f{userStrategy.FundingSymbol}");
+            var fundingCreditList = fundingCreditsResult.Data.ToList();
+            foreach (var credit in fundingCreditList)
+                fundingState.FundingCredits.Add(credit);
+
+            var activeFundingOffersResult = await client.GeneralApi.Funding.GetActiveFundingOffersAsync("fUSD");
+            var fundingOfferList = activeFundingOffersResult.Data.ToList();
+            foreach (var offer in fundingOfferList)
+                fundingState.FundingOffers.Add(offer);
+
+            return fundingState;
         }
 
-        public FundingBalance GetFundingBalance(BotUser user)
+        public async Task<FundingBalance> GetFundingBalanceAsync(UserStrategy userStrategy)
         {
-            throw new NotImplementedException();
+            FundingBalance balance = new FundingBalance();
+            BitfinexClient client = userClientDictionary[userStrategy.User.BotUserId];
+
+            var availableFundingBalanceResult = await client.SpotApi.Account.GetAvailableBalanceAsync($"f{userStrategy.FundingSymbol}", OrderSide.Buy, 0, WalletType.Funding);
+            balance.AvailableBalance = -availableFundingBalanceResult.Data.AvailableBalance;
+            //balance.AvailableBalance = Math.Floor(-availableFundingBalanceResult.Data.AvailableBalance * 1000000) / 1000000;
+
+            var fundingBalanceResult = await client.SpotApi.Account.GetBalancesAsync();
+            var wallet = fundingBalanceResult.Data
+                .Where(b => b.Type.Equals(WalletType.Funding) && b.Asset.Equals(userStrategy.FundingSymbol)).First();
+            if (wallet != null)
+                balance.TotalBalance = wallet.Total;
+            return balance;
         }
 
-        public FundingPerformance GetFundingPerformance(BotUser user)
+        public async Task<FundingPerformance> GetFundingPerformanceAsync(UserStrategy userStrategy)
         {
-            throw new NotImplementedException();
+            FundingPerformance performance = new FundingPerformance();
+            BitfinexClient client = userClientDictionary[userStrategy.User.BotUserId];
+
+            var ledgerEntriesResult = await client.SpotApi.Account.GetLedgerEntriesAsync(userStrategy.FundingSymbol, DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
+            var ledgerEntries = ledgerEntriesResult.Data;
+            foreach (var entry in ledgerEntries)
+            {
+                if (entry.Description.Equals("Margin Funding Payment on wallet funding"))
+                    performance.Profits.Add(new ProfitInfo(entry.Quantity, entry.Timestamp));
+            }
+            return performance;
         }
     }
 }
