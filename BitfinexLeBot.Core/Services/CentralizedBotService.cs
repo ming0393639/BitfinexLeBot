@@ -2,6 +2,7 @@
 using Bitfinex.Net.Enums;
 using Bitfinex.Net.Objects;
 using Bitfinex.Net.Objects.Models;
+using Bitfinex.Net.Objects.Models.V1;
 using BitfinexLeBot.Core.Interfaces;
 using BitfinexLeBot.Core.Models;
 using BitfinexLeBot.Core.Models.FundingInfo;
@@ -31,6 +32,7 @@ namespace BitfinexLeBot.Core.Services
         private IQuoteSource quoteSource;
 
         private IStrategyService strategyService;
+
 
         public CentralizedBotService(IQuoteSource quoteSource, IStrategyService strategyService)
         {
@@ -62,7 +64,7 @@ namespace BitfinexLeBot.Core.Services
                     }
                     var strategy = strategyService.GetStrategy(userStrategy.StrategyName);
                     if (strategy != null)
-                        strategy.Execute(quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+                        strategy.ExecuteAsync(quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
 
                 }
 
@@ -115,23 +117,23 @@ namespace BitfinexLeBot.Core.Services
             return registeredUserStrategyList;
         }
 
-        public async Task<FundingState> GetFundingStateAsync(UserStrategy userStrategy)
+        public async Task<FundingState> GetFundingStateAsync(BotUser user, string fundinSymbol)
         {
             FundingState fundingState = new FundingState();
 
-            BitfinexClient client = userClientDictionary[userStrategy.User.BotUserId];
+            BitfinexClient client = userClientDictionary[user.BotUserId];
 
-            var fundingProvidedResult = await client.GeneralApi.Funding.GetFundingInfoAsync($"f{userStrategy.FundingSymbol}");
+            var fundingProvidedResult = await client.GeneralApi.Funding.GetFundingInfoAsync($"f{fundinSymbol}");
             BitfinexFundingInfo fundingInfo = fundingProvidedResult.Data;
             fundingState.WeightedAvgProvidedRate = fundingInfo.Data.YieldLend * 365;
             fundingState.WeightedAvgProvidedDuration = fundingInfo.Data.DurationLend;
 
-            var fundingCreditsResult = await client.GeneralApi.Funding.GetFundingCreditsAsync($"f{userStrategy.FundingSymbol}");
+            var fundingCreditsResult = await client.GeneralApi.Funding.GetFundingCreditsAsync($"f{fundinSymbol}");
             var fundingCreditList = fundingCreditsResult.Data.ToList();
             foreach (var credit in fundingCreditList)
                 fundingState.FundingCredits.Add(credit);
 
-            var activeFundingOffersResult = await client.GeneralApi.Funding.GetActiveFundingOffersAsync("fUSD");
+            var activeFundingOffersResult = await client.GeneralApi.Funding.GetActiveFundingOffersAsync($"f{fundinSymbol}");
             var fundingOfferList = activeFundingOffersResult.Data.ToList();
             foreach (var offer in fundingOfferList)
                 fundingState.FundingOffers.Add(offer);
@@ -139,29 +141,29 @@ namespace BitfinexLeBot.Core.Services
             return fundingState;
         }
 
-        public async Task<FundingBalance> GetFundingBalanceAsync(UserStrategy userStrategy)
+        public async Task<FundingBalance> GetFundingBalanceAsync(BotUser user, string fundinSymbol)
         {
             FundingBalance balance = new FundingBalance();
-            BitfinexClient client = userClientDictionary[userStrategy.User.BotUserId];
+            BitfinexClient client = userClientDictionary[user.BotUserId];
 
-            var availableFundingBalanceResult = await client.SpotApi.Account.GetAvailableBalanceAsync($"f{userStrategy.FundingSymbol}", OrderSide.Buy, 0, WalletType.Funding);
+            var availableFundingBalanceResult = await client.SpotApi.Account.GetAvailableBalanceAsync($"f{fundinSymbol}", OrderSide.Buy, 0, WalletType.Funding);
             balance.AvailableBalance = -availableFundingBalanceResult.Data.AvailableBalance;
             //balance.AvailableBalance = Math.Floor(-availableFundingBalanceResult.Data.AvailableBalance * 1000000) / 1000000;
 
             var fundingBalanceResult = await client.SpotApi.Account.GetBalancesAsync();
             var wallet = fundingBalanceResult.Data
-                .Where(b => b.Type.Equals(WalletType.Funding) && b.Asset.Equals(userStrategy.FundingSymbol)).First();
+                .Where(b => b.Type.Equals(WalletType.Funding) && b.Asset.Equals(fundinSymbol)).First();
             if (wallet != null)
                 balance.TotalBalance = wallet.Total;
             return balance;
         }
 
-        public async Task<FundingPerformance> GetFundingPerformanceAsync(UserStrategy userStrategy)
+        public async Task<FundingPerformance> GetFundingPerformanceAsync(BotUser user, string fundinSymbol)
         {
             FundingPerformance performance = new FundingPerformance();
-            BitfinexClient client = userClientDictionary[userStrategy.User.BotUserId];
+            BitfinexClient client = userClientDictionary[user.BotUserId];
 
-            var ledgerEntriesResult = await client.SpotApi.Account.GetLedgerEntriesAsync(userStrategy.FundingSymbol, DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
+            var ledgerEntriesResult = await client.SpotApi.Account.GetLedgerEntriesAsync(fundinSymbol, DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
             var ledgerEntries = ledgerEntriesResult.Data;
             foreach (var entry in ledgerEntries)
             {
@@ -169,6 +171,29 @@ namespace BitfinexLeBot.Core.Services
                     performance.Profits.Add(new ProfitInfo(entry.Quantity, entry.Timestamp));
             }
             return performance;
+        }
+
+        public async Task<BitfinexOffer> CancelFundingOffer(BotUser user, long id)
+        {
+            BitfinexClient client = userClientDictionary[user.BotUserId];
+            var cancelOfferResult = await client.GeneralApi.Funding.CancelOfferAsync(id);
+            return cancelOfferResult.Data;
+        }
+
+        public async Task<List<BitfinexOffer>> CancelAllFundingOffers(BotUser user, string fundinSymbol)
+        {
+            var fundingState = await GetFundingStateAsync(user, fundinSymbol);
+            List<BitfinexOffer> result = new List<BitfinexOffer>();
+            foreach (var offer in fundingState.FundingOffers)
+                result.Add(await CancelFundingOffer(user, offer.Id));
+            return result;
+        }
+
+        public async Task<BitfinexOffer> NewOffer(BotUser user, string fundinSymbol, decimal amount, decimal rate, int period = 2)
+        {
+            BitfinexClient client = userClientDictionary[user.BotUserId];
+            var result = await client.GeneralApi.Funding.NewOfferAsync(fundinSymbol, amount, rate, period, FundingType.Lend);
+            return result.Data;
         }
     }
 }

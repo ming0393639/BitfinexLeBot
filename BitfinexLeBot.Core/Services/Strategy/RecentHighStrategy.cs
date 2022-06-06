@@ -11,7 +11,7 @@ namespace BitfinexLeBot.Core.Services.Strategy
 {
     public class RecentHighStrategy : IStrategy
     {
-        public StrategyResult Execute(IQuoteSource quoteSource, IFundingInfo fundingInfo, BotUser botUser, string fundingSymbol, string strategyConfigJson)
+        public Task<StrategyResult> ExecuteAsync(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson)
         {
             throw new NotImplementedException();
         }

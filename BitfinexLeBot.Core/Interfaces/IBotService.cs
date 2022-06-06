@@ -2,7 +2,7 @@
 
 namespace BitfinexLeBot.Core.Interfaces
 {
-    public interface IBotService : IFundingInfo
+    public interface IBotService : IFundingOperate
     {
         void InitializeBot();
 

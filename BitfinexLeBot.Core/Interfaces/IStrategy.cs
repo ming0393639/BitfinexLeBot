@@ -11,7 +11,7 @@ namespace BitfinexLeBot.Core.Interfaces
     public interface IStrategy
     {
 
-        StrategyResult Execute(IQuoteSource quoteSource, IFundingInfo fundingInfo, BotUser botUser, string fundingSymbol, string strategyConfigJson);
+        Task<StrategyResult> ExecuteAsync(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson);
 
 
     }

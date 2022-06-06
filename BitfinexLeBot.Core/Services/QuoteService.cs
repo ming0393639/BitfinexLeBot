@@ -34,7 +34,7 @@ namespace BitfinexLeBot.Core.Services
         //    return socketClient;
         //}
 
-        public BitfinexFundingBook GetFundingBook(string currency, int limit = 10)
+        public BitfinexFundingBook GetFundingBook(string currency, int limit = 25)
         {
             throw new NotImplementedException();
         }

@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Bitfinex.Net.Clients;
+using Bitfinex.Net.Enums;
 using Bitfinex.Net.Objects;
 using BitfinexLeBot.Core.Models.FundingInfo;
 using CryptoExchange.Net.Authentication;
@@ -20,15 +21,27 @@ BitfinexClient client = new BitfinexClient(new BitfinexClientOptions
     }
 });
 
-var ledgerEntriesResult = await client.SpotApi.Account.GetLedgerEntriesAsync("USD", DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
-var ledgerEntries = ledgerEntriesResult.Data;
-int i = 0;
-foreach (var entry in ledgerEntries)
-{
-    if (entry.Description.Equals("Margin Funding Payment on wallet funding"))
-        performance.Profits.Add(new ProfitInfo(entry.Quantity, entry.Timestamp));
-}
+//var ledgerEntriesResult = await client.SpotApi.Account.GetLedgerEntriesAsync("USD", DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
+//var ledgerEntries = ledgerEntriesResult.Data;
+//int i = 0;
+//foreach (var entry in ledgerEntries)
+//{
+//    if (entry.Description.Equals("Margin Funding Payment on wallet funding"))
+//        performance.Profits.Add(new ProfitInfo(entry.Quantity, entry.Timestamp));
+//}
 
+
+FundingBalance balance = new FundingBalance();
+
+var availableFundingBalanceResult = await client.SpotApi.Account.GetAvailableBalanceAsync($"fUSD", OrderSide.Buy, 0, WalletType.Funding);
+balance.AvailableBalance = -availableFundingBalanceResult.Data.AvailableBalance;
+//balance.AvailableBalance = Math.Floor(-availableFundingBalanceResult.Data.AvailableBalance * 1000000) / 1000000;
+
+var fundingBalanceResult = await client.SpotApi.Account.GetBalancesAsync();
+var wallet = fundingBalanceResult.Data
+    .Where(b => b.Type.Equals(WalletType.Funding) && b.Asset.Equals("USD")).First();
+if (wallet != null)
+    balance.TotalBalance = wallet.Total;
 
 
 var result = await client.SpotApi.ExchangeData.GetKlinesAsync("fUSD", Bitfinex.Net.Enums.KlineInterval.OneMinute, "p120");
