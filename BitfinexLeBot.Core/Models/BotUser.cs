@@ -8,18 +8,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BitfinexLeBot.Core.Models
+namespace BitfinexLeBot.Core.Models;
+
+public class BotUser
 {
-    public class BotUser
-    {
-        public virtual int BotUserId { get; protected set; }
+    public virtual int BotUserId { get; protected set; }
 
-        public string BotUserName { get; set; }
+    public string? BotUserName { get; set; }
 
-        public string ApiKey { get; set; }
+    public string? ApiKey { get; set; }
 
-        public string Secret { get; set; }
+    public string? Secret { get; set; }
 
 
-    }
 }

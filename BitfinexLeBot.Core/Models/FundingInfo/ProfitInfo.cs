@@ -4,18 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BitfinexLeBot.Core.Models.FundingInfo
+namespace BitfinexLeBot.Core.Models.FundingInfo;
+
+public class ProfitInfo
 {
-    public class ProfitInfo
+    public decimal Profit { get; set; }
+    public DateTime Date { get; set; }
+
+
+    public ProfitInfo(decimal profit, DateTime date)
     {
-        public decimal Profit { get; set; }
-        public DateTime Date { get; set; }
-
-
-        public ProfitInfo(decimal profit, DateTime date)
-        {
-            Profit = profit;
-            Date = date;
-        }
+        Profit = profit;
+        Date = date;
     }
 }

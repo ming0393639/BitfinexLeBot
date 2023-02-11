@@ -10,10 +10,10 @@ namespace BitfinexLeBot.Core.Models.Strategy
     public  class StrategyResult
     {
         public int ResultCode { get; set; }
-        public string StrategyName { get; set; }
-        public string UserId { get; set; }
+        public string? StrategyName { get; set; }
+        public string? UserId { get; set; }
         public List<BitfinexOffer> Sinals { get; set; } = new List<BitfinexOffer>();
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
     }
 }

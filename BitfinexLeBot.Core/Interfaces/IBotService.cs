@@ -1,18 +1,17 @@
 ﻿using BitfinexLeBot.Core.Models;
 
-namespace BitfinexLeBot.Core.Interfaces
+namespace BitfinexLeBot.Core.Interfaces;
+
+public interface IBotService : IFundingOperate
 {
-    public interface IBotService : IFundingOperate
-    {
-        void InitializeBot();
+    void InitializeBot();
 
-        bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson);
+    bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson);
 
-        void UnregisterUserStrategy(int userStrategyId);
+    void UnregisterUserStrategy(int userStrategyId);
 
-        List<UserStrategy> GetRegisteredUserStrategy();
+    List<UserStrategy> GetRegisteredUserStrategy();
 
 
 
-    }
 }

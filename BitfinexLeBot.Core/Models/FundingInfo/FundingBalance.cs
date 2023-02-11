@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BitfinexLeBot.Core.Models.FundingInfo
+namespace BitfinexLeBot.Core.Models.FundingInfo;
+
+public class FundingBalance
 {
-    public class FundingBalance
-    {
-        public decimal TotalBalance { get; set; }
-        public decimal AvailableBalance { get; set; }
+    public decimal TotalBalance { get; set; }
+    public decimal AvailableBalance { get; set; }
 
 
-    }
 }

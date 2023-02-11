@@ -6,13 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BitfinexLeBot.Core.Interfaces
+namespace BitfinexLeBot.Core.Interfaces;
+
+public interface IStrategy
 {
-    public interface IStrategy
-    {
 
-        StrategyResult Execute(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson);
+    StrategyResult Execute(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson);
 
 
-    }
 }

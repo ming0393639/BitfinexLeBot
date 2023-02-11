@@ -8,10 +8,6 @@ namespace BitfinexLeBot.Core.Models.Strategy
 {
     public class BasicStrategyConfig
     {
-        public virtual int BotUserId { get; protected set; }
-
-        public string FundingSymbol { get; set; }
-
         public bool UpdateOfferingEveryRun { get; set; } = true;
 
         public int FixedPeriod { get; set; } = 2;

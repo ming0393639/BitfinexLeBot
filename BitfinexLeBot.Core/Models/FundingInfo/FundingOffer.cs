@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BitfinexLeBot.Core.Models.FundingInfo
+namespace BitfinexLeBot.Core.Models.FundingInfo;
+
+[Obsolete("FundingOffer is deprecated.", true)]
+public class FundingOffer
 {
-    [Obsolete("FundingOffer is deprecated.", true)]
-    public class FundingOffer
-    {
 
 
-    }
 }
