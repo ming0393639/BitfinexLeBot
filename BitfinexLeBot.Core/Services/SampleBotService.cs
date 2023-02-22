@@ -18,10 +18,7 @@ using System.Threading.Tasks;
 
 namespace BitfinexLeBot.Core.Services;
 
-/// <summary>
-/// All registered userStrategies are executed in a worker(single thread)
-/// </summary>
-public class CentralizedBotService : BackgroundService, IBotService
+public class SampleBotService : IBotService
 {
 
     private readonly List<UserStrategy> _registeredUserStrategyList = new();
@@ -31,21 +28,65 @@ public class CentralizedBotService : BackgroundService, IBotService
     /// </summary>
     private readonly Dictionary<int, BitfinexClient> _userClientDictionary = new();
 
+    private readonly BackgroundWorker _worker = new();
+
     private readonly IQuoteSource _quoteSource;
 
     private readonly IStrategyService _strategyService;
 
 
-    public CentralizedBotService(IQuoteSource quoteSource, IStrategyService strategyService)
+    public SampleBotService(IQuoteSource quoteSource, IStrategyService strategyService)
     {
         _quoteSource = quoteSource;
         _strategyService = strategyService;
     }
 
+
     public void InitializeBot()
+    {
+        _worker.DoWork += new DoWorkEventHandler(botDoWork);
+        _worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(botRunWorkerCompleted);
+        _worker.ProgressChanged += new ProgressChangedEventHandler(botProgressChanged);
+        _worker.WorkerReportsProgress = true;
+        _worker.WorkerSupportsCancellation = true;
+
+        _worker.RunWorkerAsync();
+    }
+
+    private void botDoWork(object sender, DoWorkEventArgs e)
+    {
+        while (!_worker.CancellationPending)
+        {
+            foreach (var userStrategy in _registeredUserStrategyList)
+            {
+                if (!userStrategy.Active)
+                {
+                    continue;
+                }
+                if (userStrategy.StrategyName != null && userStrategy.User != null
+                    && userStrategy.FundingSymbol != null && userStrategy.StrategyConfigJson != null)
+                {
+                    var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
+                    var strategyResult = strategy?.Execute(
+                        _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+                }
+            }
+
+            Thread.Sleep(100);
+        }
+
+    }
+
+    private void botProgressChanged(object sender, ProgressChangedEventArgs e)
     {
 
     }
+
+    private void botRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+    {
+
+    }
+
 
     public bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson)
     {
@@ -161,29 +202,5 @@ public class CentralizedBotService : BackgroundService, IBotService
         BitfinexClient client = _userClientDictionary[user.BotUserId];
         var result = client.GeneralApi.Funding.NewOfferAsync(fundinSymbol, amount, rate, period, FundingType.Lend);
         return result.Result.Data;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        // 在此添加您的後台代碼
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            // 在此執行您的背景操作
-            foreach (var userStrategy in _registeredUserStrategyList)
-            {
-                if (!userStrategy.Active)
-                {
-                    continue;
-                }
-                if (userStrategy.StrategyName != null && userStrategy.User != null
-                    && userStrategy.FundingSymbol != null && userStrategy.StrategyConfigJson != null)
-                {
-                    var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
-                    var strategyResult = strategy?.Execute(
-                        _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
-                }
-            }
-            await Task.Delay(TimeSpan.FromSeconds(0.1), stoppingToken);
-        }
     }
 }
