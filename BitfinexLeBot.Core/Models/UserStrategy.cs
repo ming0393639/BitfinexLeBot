@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ public class UserStrategy
     public string? FundingSymbol { get; set; }
 
     [JsonIgnore]
-    public string? StrategyConfigJson { get; set; }
+    public object? StrategyConfigJson { get; set; }
 
 
 }

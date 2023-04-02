@@ -9,11 +9,13 @@ using BitfinexLeBot.Core.Models.FundingInfo;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BitfinexLeBot.Core.Services;
@@ -23,6 +25,7 @@ namespace BitfinexLeBot.Core.Services;
 /// </summary>
 public class CentralizedBotService : BackgroundService, IBotService
 {
+    private readonly ILogger<CentralizedBotService> _logger;
 
     private readonly List<UserStrategy> _registeredUserStrategyList = new();
 
@@ -36,15 +39,24 @@ public class CentralizedBotService : BackgroundService, IBotService
     private readonly IStrategyService _strategyService;
 
 
-    public CentralizedBotService(IQuoteSource quoteSource, IStrategyService strategyService)
+    public CentralizedBotService(ILogger<CentralizedBotService> logger, IQuoteSource quoteSource, IStrategyService strategyService)
     {
+        _logger = logger;
         _quoteSource = quoteSource;
         _strategyService = strategyService;
+        InitializeBot();
     }
 
     public void InitializeBot()
     {
-
+        // read config and regist strategy
+        string configPath = Path.Combine(AppContext.BaseDirectory, "UserStrategyConfig.json");
+        string content = File.ReadAllText(configPath);
+        var userStrategies= JsonSerializer.Deserialize<List<UserStrategy>>(content);
+        if (userStrategies != null)
+        {
+            _registeredUserStrategyList.AddRange(userStrategies);
+        }
     }
 
     public bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson)
@@ -165,10 +177,10 @@ public class CentralizedBotService : BackgroundService, IBotService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // 在此添加您的後台代碼
+        _logger.LogInformation("CentralizedBotService ExecuteAsync.");
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            // 在此執行您的背景操作
             foreach (var userStrategy in _registeredUserStrategyList)
             {
                 if (!userStrategy.Active)
@@ -183,7 +195,8 @@ public class CentralizedBotService : BackgroundService, IBotService
                         _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
                 }
             }
-            await Task.Delay(TimeSpan.FromSeconds(0.1), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
         }
+        _logger.LogInformation("CentralizedBotService End.");
     }
 }

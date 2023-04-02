@@ -1,4 +1,4 @@
-﻿using Bitfinex.Net.Objects.Models.V1;
+using Bitfinex.Net.Objects.Models.V1;
 using BitfinexLeBot.Core.Interfaces;
 using BitfinexLeBot.Core.Models;
 using BitfinexLeBot.Core.Models.Strategy;
@@ -13,7 +13,7 @@ namespace BitfinexLeBot.Core.Services.Strategy;
 
 public class BasicStrategy : IStrategy
 {
-    public StrategyResult Execute(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, string strategyConfigJson)
+    public StrategyResult Execute(IQuoteSource quoteSource, IFundingOperate fundingOperate, BotUser botUser, string fundingSymbol, object strategyConfigJson)
     {
         StrategyResult result = new StrategyResult()
         {
@@ -22,7 +22,13 @@ public class BasicStrategy : IStrategy
             ResultCode = 0
         };
 
-        BasicStrategyConfig? config = JsonConvert.DeserializeObject<BasicStrategyConfig>(strategyConfigJson);
+        string strategyConfigJsonStr = "";
+        if (strategyConfigJson != null)
+        {
+            strategyConfigJsonStr = strategyConfigJson.ToString() ?? "";
+        }
+
+        BasicStrategyConfig? config = JsonConvert.DeserializeObject<BasicStrategyConfig>(strategyConfigJsonStr);
         if (config == null)
         {
             result.ResultCode = -1;
