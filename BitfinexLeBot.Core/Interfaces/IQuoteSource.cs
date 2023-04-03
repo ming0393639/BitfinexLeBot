@@ -1,4 +1,4 @@
-﻿using Bitfinex.Net.Clients;
+using Bitfinex.Net.Clients;
 using Bitfinex.Net.Enums;
 using Bitfinex.Net.Objects.Models;
 using Bitfinex.Net.Objects.Models.V1;
@@ -8,7 +8,7 @@ namespace BitfinexLeBot.Core.Interfaces;
 
 public interface IQuoteSource
 {
-    //void InitializeQuote(List<string> symbolList);
+    //void InitializeQuote(BitfinexClient client, BitfinexSocketClient _socketClient);
 
     //BitfinexClient GetBitfinexClient();
 

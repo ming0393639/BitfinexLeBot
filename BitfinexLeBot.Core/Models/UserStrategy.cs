@@ -10,7 +10,7 @@ namespace BitfinexLeBot.Core.Models;
 public class UserStrategy
 {
 
-    public virtual int UserStrategyId { get; protected set; }
+    public int UserStrategyId { get; set; }
 
     public BotUser? User { get; set; }
 

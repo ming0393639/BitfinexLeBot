@@ -31,7 +31,7 @@ public class RecentHighStrategy : IStrategy
             result.ErrorMessage = "cannot get config";
             return result;
         }
-
+        return result;
         decimal offeringBalance = 0;
         if (config.UpdateOfferingEveryRun)
         {
@@ -40,7 +40,7 @@ public class RecentHighStrategy : IStrategy
             {
                 offeringBalance = fundingState.TotalOfferingAmount;
                 var cancelSignals = fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
-                result.Sinals.AddRange(cancelSignals);
+                result.Signals.AddRange(cancelSignals);
             }
         }
 
@@ -56,7 +56,7 @@ public class RecentHighStrategy : IStrategy
             {
                 var signal = newOfferAtFirstAsk(fundingOperate, botUser, fundingSymbol, totalAvailableBalance, config, fundingBalance.TotalBalance, trades, kLines);
                 if (signal!=null)
-                    result.Sinals.Add(signal);
+                    result.Signals.Add(signal);
             }
         }
         return result;

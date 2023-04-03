@@ -23,7 +23,7 @@ namespace BitfinexLeBot.Core.Services;
 /// <summary>
 /// All registered userStrategies are executed in a worker(single thread)
 /// </summary>
-public class CentralizedBotService : BackgroundService, IBotService
+public class CentralizedBotService : IBotService
 {
     private readonly ILogger<CentralizedBotService> _logger;
 
@@ -43,6 +43,7 @@ public class CentralizedBotService : BackgroundService, IBotService
     {
         _logger = logger;
         _quoteSource = quoteSource;
+
         _strategyService = strategyService;
         InitializeBot();
     }
@@ -55,11 +56,14 @@ public class CentralizedBotService : BackgroundService, IBotService
         var userStrategies= JsonSerializer.Deserialize<List<UserStrategy>>(content);
         if (userStrategies != null)
         {
-            _registeredUserStrategyList.AddRange(userStrategies);
+            foreach (var userStrategy in userStrategies)
+            {
+                _ = RegisterUserStrategy(userStrategy, userStrategy.StrategyConfigJson);
+            }
         }
     }
 
-    public bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson)
+    public bool RegisterUserStrategy(UserStrategy userStrategy, object? strategyConfigJson)
     {
         userStrategy.StrategyConfigJson = strategyConfigJson;
 
@@ -175,28 +179,23 @@ public class CentralizedBotService : BackgroundService, IBotService
         return result.Result.Data;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public void RunStep()
     {
-        _logger.LogInformation("CentralizedBotService ExecuteAsync.");
-
-        while (!stoppingToken.IsCancellationRequested)
+        _logger.LogInformation("CentralizedBotService RunStep.");
+        foreach (var userStrategy in _registeredUserStrategyList)
         {
-            foreach (var userStrategy in _registeredUserStrategyList)
+            if (!userStrategy.Active)
             {
-                if (!userStrategy.Active)
-                {
-                    continue;
-                }
-                if (userStrategy.StrategyName != null && userStrategy.User != null
-                    && userStrategy.FundingSymbol != null && userStrategy.StrategyConfigJson != null)
-                {
-                    var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
-                    var strategyResult = strategy?.Execute(
-                        _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
-                }
+                continue;
             }
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            if (userStrategy.StrategyName != null && userStrategy.User != null
+                && userStrategy.FundingSymbol != null && userStrategy.StrategyConfigJson != null)
+            {
+                var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
+                var strategyResult = strategy?.Execute(
+                    _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+            }
         }
-        _logger.LogInformation("CentralizedBotService End.");
+        _logger.LogInformation("CentralizedBotService RunStep End.");
     }
 }

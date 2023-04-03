@@ -57,21 +57,7 @@ public class SampleBotService : IBotService
     {
         while (!_worker.CancellationPending)
         {
-            foreach (var userStrategy in _registeredUserStrategyList)
-            {
-                if (!userStrategy.Active)
-                {
-                    continue;
-                }
-                if (userStrategy.StrategyName != null && userStrategy.User != null
-                    && userStrategy.FundingSymbol != null && userStrategy.StrategyConfigJson != null)
-                {
-                    var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
-                    var strategyResult = strategy?.Execute(
-                        _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
-                }
-            }
-
+            RunStep();
             Thread.Sleep(100);
         }
 
@@ -88,7 +74,7 @@ public class SampleBotService : IBotService
     }
 
 
-    public bool RegisterUserStrategy(UserStrategy userStrategy, string strategyConfigJson)
+    public bool RegisterUserStrategy(UserStrategy userStrategy, object? strategyConfigJson)
     {
         userStrategy.StrategyConfigJson = strategyConfigJson;
 
@@ -202,5 +188,23 @@ public class SampleBotService : IBotService
         BitfinexClient client = _userClientDictionary[user.BotUserId];
         var result = client.GeneralApi.Funding.NewOfferAsync(fundinSymbol, amount, rate, period, FundingType.Lend);
         return result.Result.Data;
+    }
+
+    public void RunStep()
+    {
+        foreach (var userStrategy in _registeredUserStrategyList)
+        {
+            if (!userStrategy.Active)
+            {
+                continue;
+            }
+            if (userStrategy.StrategyName != null && userStrategy.User != null
+                && userStrategy.FundingSymbol != null && userStrategy.StrategyConfigJson != null)
+            {
+                var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
+                var strategyResult = strategy?.Execute(
+                    _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Bitfinex.Net.Clients;
+using Bitfinex.Net.Clients;
 using Bitfinex.Net.Objects;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
@@ -12,7 +12,7 @@ namespace BitfinexLeBot.Core.Models;
 
 public class BotUser
 {
-    public virtual int BotUserId { get; protected set; }
+    public int BotUserId { get; set; }
 
     public string? BotUserName { get; set; }
 

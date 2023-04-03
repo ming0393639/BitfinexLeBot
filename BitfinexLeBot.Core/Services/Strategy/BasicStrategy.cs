@@ -44,7 +44,7 @@ public class BasicStrategy : IStrategy
             {
                 offeringBalance = fundingState.TotalOfferingAmount;
                 var cancelSignals = fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
-                result.Sinals.AddRange(cancelSignals);
+                result.Signals.AddRange(cancelSignals);
             }
         }
 
@@ -57,7 +57,7 @@ public class BasicStrategy : IStrategy
             if (totalAvailableBalance > 50)
             {
                 var signal = newOfferAtFirstAskAsync(fundingOperate, botUser, fundingSymbol, totalAvailableBalance, config, book);
-                if (signal != null) result.Sinals.Add(signal);
+                if (signal != null) result.Signals.Add(signal);
             }
         }
         return result;

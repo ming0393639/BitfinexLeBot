@@ -1,4 +1,4 @@
-﻿using Bitfinex.Net.Objects.Models.V1;
+using Bitfinex.Net.Objects.Models.V1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace BitfinexLeBot.Core.Models.Strategy
         public int ResultCode { get; set; }
         public string? StrategyName { get; set; }
         public string? UserId { get; set; }
-        public List<BitfinexOffer> Sinals { get; set; } = new List<BitfinexOffer>();
+        public List<BitfinexOffer> Signals { get; set; } = new List<BitfinexOffer>();
         public string? ErrorMessage { get; set; }
 
     }
