@@ -1,12 +1,9 @@
-﻿using Bitfinex.Net.Objects.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bitfinex.Net.Objects.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BitfinexLeBot.Core.Models.FundingInfo;
 
+[SwaggerSchema("My parameter description")]
 public class FundingState
 {
     public decimal WeightedAvgProvidedRate { get; set; }

@@ -10,6 +10,7 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -32,7 +33,7 @@ public class CentralizedBotService : IBotService
     /// <summary>
     /// key: UserId; value: BitfinexClient
     /// </summary>
-    private readonly Dictionary<int, BitfinexClient> _userClientDictionary = new();
+    private readonly Dictionary<int, BitfinexRestClient> _userClientDictionary = new();
 
     private readonly IQuoteSource _quoteSource;
 
@@ -72,16 +73,24 @@ public class CentralizedBotService : IBotService
             return false;
         }
 
-        _userClientDictionary.Add(userStrategy.User.BotUserId,
-            new BitfinexClient(new BitfinexClientOptions
-            {
-                ApiCredentials = new ApiCredentials(userStrategy.User.ApiKey, userStrategy.User.Secret),
-                SpotApiOptions = new RestApiClientOptions
-                {
-                    BaseAddress = "https://api.bitfinex.com/",
-                    RateLimitingBehaviour = RateLimitingBehaviour.Fail
-                }
-            }));
+        var bitfinexRestClient = new BitfinexRestClient(options =>
+        {
+            options.ApiCredentials = new ApiCredentials(userStrategy.User.ApiKey, userStrategy.User.Secret);
+            options.RequestTimeout = TimeSpan.FromSeconds(60);
+        });
+
+        _userClientDictionary.Add(userStrategy.User.BotUserId, bitfinexRestClient);
+
+        //_userClientDictionary.Add(userStrategy.User.BotUserId,
+        //    new BitfinexClient(new BitfinexClientOptions
+        //    {
+        //        ApiCredentials = new ApiCredentials(userStrategy.User.ApiKey, userStrategy.User.Secret),
+        //        SpotApiOptions = new RestApiClientOptions
+        //        {
+        //            BaseAddress = "https://api.bitfinex.com/",
+        //            RateLimitingBehaviour = RateLimitingBehaviour.Fail
+        //        }
+        //    }));
 
         _registeredUserStrategyList.Add(userStrategy);
 
@@ -104,19 +113,35 @@ public class CentralizedBotService : IBotService
     {
         FundingState fundingState = new FundingState();
 
-        BitfinexClient client = _userClientDictionary[user.BotUserId];
+        var client = _userClientDictionary[user.BotUserId];
 
         var fundingProvidedResult = client.GeneralApi.Funding.GetFundingInfoAsync($"f{fundinSymbol}");
+        if (!fundingProvidedResult.Result.Success)
+        {
+            _logger.LogError(fundingProvidedResult.Result.Error?.Message);
+            return null;
+        }
+
         BitfinexFundingInfo fundingInfo = fundingProvidedResult.Result.Data;
         fundingState.WeightedAvgProvidedRate = fundingInfo.Data.YieldLend * 365;
         fundingState.WeightedAvgProvidedDuration = fundingInfo.Data.DurationLend;
 
         var fundingCreditsResult = client.GeneralApi.Funding.GetFundingCreditsAsync($"f{fundinSymbol}");
+        if (!fundingCreditsResult.Result.Success)
+        {
+            _logger.LogError(fundingCreditsResult.Result.Error?.Message);
+            return null;
+        }
         var fundingCreditList = fundingCreditsResult.Result.Data.ToList();
         foreach (var credit in fundingCreditList)
             fundingState.FundingCredits.Add(credit);
 
         var activeFundingOffersResult = client.GeneralApi.Funding.GetActiveFundingOffersAsync($"f{fundinSymbol}");
+        if (!activeFundingOffersResult.Result.Success)
+        {
+            _logger.LogError(activeFundingOffersResult.Result.Error?.Message);
+            return null;
+        }
         var fundingOfferList = activeFundingOffersResult.Result.Data.ToList();
         foreach (var offer in fundingOfferList)
             fundingState.FundingOffers.Add(offer);
@@ -127,9 +152,14 @@ public class CentralizedBotService : IBotService
     public FundingBalance GetFundingBalance(BotUser user, string fundinSymbol)
     {
         FundingBalance balance = new FundingBalance();
-        BitfinexClient client = _userClientDictionary[user.BotUserId];
+        var client = _userClientDictionary[user.BotUserId];
 
         var availableFundingBalanceResult = client.SpotApi.Account.GetAvailableBalanceAsync($"f{fundinSymbol}", OrderSide.Buy, 0, WalletType.Funding);
+        if (!availableFundingBalanceResult.Result.Success)
+        {
+            _logger.LogError(availableFundingBalanceResult.Result.Error?.Message);
+            return null;
+        }
         balance.AvailableBalance = -availableFundingBalanceResult.Result.Data.AvailableBalance;
         //balance.AvailableBalance = Math.Floor(-availableFundingBalanceResult.Data.AvailableBalance * 1000000) / 1000000;
 
@@ -144,7 +174,7 @@ public class CentralizedBotService : IBotService
     public FundingPerformance GetFundingPerformance(BotUser user, string fundinSymbol)
     {
         FundingPerformance performance = new FundingPerformance();
-        BitfinexClient client = _userClientDictionary[user.BotUserId];
+        var client = _userClientDictionary[user.BotUserId];
 
         var ledgerEntriesResult = client.SpotApi.Account.GetLedgerEntriesAsync(fundinSymbol, DateTime.Now.AddYears(-5), DateTime.Now, 2500, 28);
         var ledgerEntries = ledgerEntriesResult.Result.Data;
@@ -158,15 +188,17 @@ public class CentralizedBotService : IBotService
 
     public BitfinexOffer CancelFundingOffer(BotUser user, long id)
     {
-        BitfinexClient client = _userClientDictionary[user.BotUserId];
+        var client = _userClientDictionary[user.BotUserId];
         var cancelOfferResult = client.GeneralApi.Funding.CancelOfferAsync(id);
         return cancelOfferResult.Result.Data;
     }
 
     public List<BitfinexOffer> CancelAllFundingOffers(BotUser user, string fundinSymbol)
     {
-        var fundingState = GetFundingState(user, fundinSymbol);
         List<BitfinexOffer> result = new List<BitfinexOffer>();
+        var fundingState = GetFundingState(user, fundinSymbol);
+        if (fundingState == null)
+            return result;
         foreach (var offer in fundingState.FundingOffers)
             result.Add(CancelFundingOffer(user, offer.Id));
         return result;
@@ -174,7 +206,7 @@ public class CentralizedBotService : IBotService
 
     public BitfinexOffer NewOffer(BotUser user, string fundinSymbol, decimal amount, decimal rate, int period = 2)
     {
-        BitfinexClient client = _userClientDictionary[user.BotUserId];
+        var client = _userClientDictionary[user.BotUserId];
         var result = client.GeneralApi.Funding.NewOfferAsync(fundinSymbol, amount, rate, period, FundingType.Lend);
         return result.Result.Data;
     }
@@ -194,6 +226,7 @@ public class CentralizedBotService : IBotService
                 var strategy = _strategyService.GetStrategy(userStrategy.StrategyName);
                 var strategyResult = strategy?.Execute(
                     _quoteSource, this, userStrategy.User, userStrategy.FundingSymbol, userStrategy.StrategyConfigJson);
+                _logger.LogInformation(JsonSerializer.Serialize(strategyResult));
             }
         }
         _logger.LogInformation("CentralizedBotService RunStep End.");

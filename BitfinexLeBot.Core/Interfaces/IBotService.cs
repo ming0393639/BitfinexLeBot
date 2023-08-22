@@ -1,4 +1,5 @@
 using BitfinexLeBot.Core.Models;
+using BitfinexLeBot.Core.Models.FundingInfo;
 
 namespace BitfinexLeBot.Core.Interfaces;
 
@@ -14,4 +15,5 @@ public interface IBotService : IFundingOperate
 
     void RunStep();
 
+    FundingState GetFundingState(BotUser user, string fundinSymbol);
 }

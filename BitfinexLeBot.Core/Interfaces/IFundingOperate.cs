@@ -1,4 +1,4 @@
-﻿using Bitfinex.Net.Objects.Models.V1;
+using Bitfinex.Net.Objects.Models.V1;
 using BitfinexLeBot.Core.Models;
 using BitfinexLeBot.Core.Models.FundingInfo;
 

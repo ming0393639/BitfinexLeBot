@@ -40,7 +40,7 @@ public class BasicStrategy : IStrategy
         if (config.UpdateOfferingEveryRun)
         {
             var fundingState = fundingOperate.GetFundingState(botUser, fundingSymbol);
-            if (fundingState.FundingOffers.Count > 0)
+            if (fundingState?.FundingOffers.Count > 0)
             {
                 offeringBalance = fundingState.TotalOfferingAmount;
                 var cancelSignals = fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);

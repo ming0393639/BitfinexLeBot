@@ -14,7 +14,7 @@ namespace BitfinexLeBot.Core.Services.Quote;
 
 public abstract class QuoteService : IQuoteSource
 {
-    protected BitfinexClient _client;
+    protected BitfinexRestClient _client;
     protected BitfinexSocketClient _socketClient;
 
 

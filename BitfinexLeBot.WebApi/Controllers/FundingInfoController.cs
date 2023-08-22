@@ -38,9 +38,9 @@ public class FundingInfoController : ControllerBase
 
     // GET: api/<FundingInfoController>
     [HttpGet]
-    public IEnumerable<string> Get()
+    public IEnumerable<FundingState> Get()
     {
-        return new string[] { "value1", "value2" };
+        return new FundingState[] { };
     }
 
     // GET api/<FundingInfoController>/5

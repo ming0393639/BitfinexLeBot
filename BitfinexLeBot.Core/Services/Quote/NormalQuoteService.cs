@@ -26,15 +26,22 @@ public class NormalQuoteService : QuoteService
         string content = File.ReadAllText(configPath);
         var userStrategies = JsonSerializer.Deserialize<List<UserStrategy>>(content);
 
-        var client = new BitfinexClient(new BitfinexClientOptions
+
+        var client = new BitfinexRestClient(options =>
         {
-            ApiCredentials = new ApiCredentials(userStrategies[0].User.ApiKey, userStrategies[0].User.Secret),
-            SpotApiOptions = new RestApiClientOptions
-            {
-                BaseAddress = "https://api.bitfinex.com/",
-                RateLimitingBehaviour = RateLimitingBehaviour.Fail
-            }
+            options.ApiCredentials = new ApiCredentials(userStrategies[0].User.ApiKey, userStrategies[0].User.Secret);
+            options.RequestTimeout = TimeSpan.FromSeconds(60);
         });
+
+        //var client = new BitfinexClient(new BitfinexClientOptions
+        //{
+        //    ApiCredentials = new ApiCredentials(userStrategies[0].User.ApiKey, userStrategies[0].User.Secret),
+        //    SpotApiOptions = new RestApiClientOptions
+        //    {
+        //        BaseAddress = "https://api.bitfinex.com/",
+        //        RateLimitingBehaviour = RateLimitingBehaviour.Fail
+        //    }
+        //});
 
         _client = client;
         _socketClient = null;

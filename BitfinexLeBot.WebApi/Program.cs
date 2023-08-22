@@ -2,6 +2,7 @@ using BitfinexLeBot.Core.Interfaces;
 using BitfinexLeBot.Core.Services;
 using BitfinexLeBot.Core.Services.Quote;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console(outputTemplate:
-                "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 builder.Host.UseSerilog();
 
@@ -31,7 +32,12 @@ builder.Services.AddHostedService<WorkerService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.EnableAnnotations();
+    // 添加 Swagger 文件
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+});
 
 var app = builder.Build();
 

@@ -31,12 +31,12 @@ public class RecentHighStrategy : IStrategy
             result.ErrorMessage = "cannot get config";
             return result;
         }
-        return result;
+
         decimal offeringBalance = 0;
         if (config.UpdateOfferingEveryRun)
         {
             var fundingState = fundingOperate.GetFundingState(botUser, fundingSymbol);
-            if (fundingState.FundingOffers.Count > 0)
+            if (fundingState?.FundingOffers.Count > 0)
             {
                 offeringBalance = fundingState.TotalOfferingAmount;
                 var cancelSignals = fundingOperate.CancelAllFundingOffers(botUser, fundingSymbol);
